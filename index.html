@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Paradise Adult Finder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: playful, clear, like a Tama care notebook
+   IDEA: the growth chart insert from the box, one colour per field
+   PICTURE: big Baby → Kid → Young → Adult path, current step lit
+   COLOUR and TYPE: candy cream ground, deep navy ink, pink accent; Baloo 2 + Nunito
+   LAYOUT: one column: device → adult → stage → result */
+:root{color-scheme:light dark;--bg:light-dark(#fff6d6,#1b1830);--card:light-dark(#ffffff,#26223f);--ink:light-dark(#1d1b3a,#f4f0ff);--mute:light-dark(#5c587a,#b9b3d6);--line:light-dark(#efe2b0,#3a3460);--accent:#ff4f8b;--ok:light-dark(#11865a,#5be3a6);--no:light-dark(#c7253e,#ff8a9a)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Nunito,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:"Baloo 2",Nunito,sans-serif;line-height:1.05;margin:0;text-wrap:balance}
+h1{font-size:clamp(32px,6vw,50px);font-weight:800}
+h2{font-size:24px;font-weight:800;margin-bottom:12px}
+.wrap{max-width:1100px;margin:0 auto;padding:clamp(20px,4vw,48px) max(4vw,16px)}
+header{background:var(--accent);color:#fff}
+header p{margin:8px 0 0;max-width:60ch;opacity:.95}
+.step{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:20px;margin-top:20px}
+.num{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--ink);color:var(--bg);font-weight:800;margin-right:8px;font-size:16px;vertical-align:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+button,select,input{font:inherit;font-size:16px;color:inherit}
+.pill{min-height:44px;padding:8px 16px;border-radius:999px;border:2px solid var(--line);background:transparent;cursor:pointer;font-weight:700}
+.pill[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.pill:focus-visible,.chip:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+input[type=search],select{min-height:44px;width:100%;max-width:420px;padding:8px 14px;border-radius:14px;border:2px solid var(--line);background:var(--bg)}
+.field{margin-top:16px}
+.field h3{font-size:18px;display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.dot{width:14px;height:14px;border-radius:50%;flex:none}
+.small{font-size:13px;color:var(--mute);font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{min-height:40px;padding:6px 12px;border-radius:12px;border:2px solid transparent;background:color-mix(in srgb,var(--c) 18%,transparent);cursor:pointer;font-weight:700;text-align:left}
+.chip:hover{border-color:var(--c)}
+.chip.sel{background:var(--c);color:#fff}
+.chip.special{border-style:dashed;border-color:var(--c)}
+.info{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media(max-width:700px){.info{grid-template-columns:minmax(0,1fr)}}
+.big{font-family:"Baloo 2";font-size:clamp(30px,5vw,44px);font-weight:800;line-height:1}
+.tag{display:inline-block;padding:3px 10px;border-radius:999px;font-size:13px;font-weight:800;color:#fff;background:var(--c);margin:2px 4px 2px 0}
+.devbtn{display:flex;flex-direction:column;align-items:center;gap:4px;width:112px;padding:8px 6px 10px;border-radius:18px;border:2px solid var(--line);background:var(--card);cursor:pointer;font-weight:800;font-size:13px;line-height:1.15;text-align:center}
+.devbtn img{width:84px;height:84px;object-fit:contain;border-radius:12px;background:#fff}
+.devbtn .all{width:84px;height:84px;border-radius:12px;display:grid;place-items:center;background:var(--bg);font-family:"Baloo 2";font-size:22px}
+.devbtn[aria-pressed=true]{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--card))}
+.devbtn:hover{border-color:var(--accent)}
+.devbtn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+@media(max-width:480px){.devbtn{width:calc(33.3% - 6px)}.devbtn img,.devbtn .all{width:64px;height:64px}}
+.dev{display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 4px;border-radius:10px;border:2px solid var(--line);font-weight:700;font-size:14px;margin:3px 4px 3px 0}
+.path{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:6px}
+@media(max-width:560px){.path{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.node{border-radius:16px;padding:12px;border:2px solid var(--line);text-align:center}
+.node b{display:block;font-family:"Baloo 2";font-size:18px;line-height:1.1}
+.node span{font-size:13px;color:var(--mute);font-weight:700}
+.node.done{opacity:.45}
+.node.now{border-color:var(--c);background:color-mix(in srgb,var(--c) 15%,transparent);box-shadow:0 4px 0 var(--c)}
+.verdict{font-family:"Baloo 2";font-size:26px;font-weight:800;margin:6px 0 4px}
+.verdict.ok{color:var(--ok)}.verdict.no{color:var(--no)}
+ol.todo{padding-left:22px;margin:8px 0 0}
+ol.todo li{margin:10px 0}
+.food{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.food span{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:2px 8px;font-size:14px;white-space:nowrap}
+.hidden{display:none}
+.note{background:var(--bg);border-radius:14px;padding:12px 14px;margin-top:12px;font-size:15px}
+.pic{width:118px;aspect-ratio:1.4;padding:0;border-radius:14px;border:3px solid transparent;background-color:#fff;background-repeat:no-repeat;cursor:pointer;transition:transform .15s}
+.pic:hover{transform:translateY(-2px);border-color:var(--c)}
+.pic.special{border:3px dashed var(--c)}
+.pic.sel{border:3px solid var(--c);box-shadow:0 0 0 3px var(--c)}
+.pic:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+@media(max-width:480px){.pic{width:calc(33.3% - 6px)}}
+.av{width:min(100%,240px);aspect-ratio:1.4;border-radius:18px;border:2px solid var(--line);background-color:#fff;background-repeat:no-repeat;margin-bottom:12px}
+.dev img{width:34px;height:34px;object-fit:contain;border-radius:8px;background:#fff}
+.egg{width:60px;height:72px;border-radius:50% 50% 46% 46%/58% 58% 42% 42%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.55),transparent 40%),var(--e);border:2px solid rgba(0,0,0,.12);margin:6px 0 4px;position:relative}
+.egg::after{content:"";position:absolute;inset:26% 24% 34%;border-radius:8px;background:#20243f;opacity:.85}
+.egg.sm{width:26px;height:31px;margin:0;border-width:1px}.egg.sm::after{border-radius:3px}
+.mini{width:100%;max-width:120px;aspect-ratio:1.4;margin:0 auto 6px;border-radius:10px;background-color:#fff;background-repeat:no-repeat}
+details.up{background:var(--card);border:2px dashed var(--line);border-radius:22px;padding:14px 20px;margin-top:20px}
+details.up summary{cursor:pointer;font-weight:800;font-size:18px;min-height:32px}
+.chartimg{width:100%;border-radius:14px;margin-top:10px;display:block}
+input[type=file]{font-size:15px;margin-top:6px;max-width:100%}
+footer{font-size:13px;color:var(--mute);text-align:center;padding:24px 16px 40px}
+footer a{color:inherit}
+@media (prefers-reduced-motion:no-preference){.node.now{animation:pop .5s ease}@keyframes pop{0%{transform:scale(.9)}60%{transform:scale(1.05)}100%{transform:scale(1)}}}
+</style>
+<style id="bgcss"></style>
+</head>
+<body>
+<header><div class="wrap">
+<h1>Tamagotchi Paradise — Adult Finder</h1>
+<p>Pick the adult you want and your Tama's current stage. You'll see whether you can still get it and exactly what to do next.</p>
+</div></header>
+
+<main class="wrap">
+<details class="up" id="upBox">
+<summary>Character pictures (optional)</summary>
+<p style="margin:8px 0">Pick your saved growth chart images (you can select all 18 at once) to show character pictures. Images <b>only open in your browser</b>, are never uploaded, and are remembered on this device.</p>
+<p class="small" style="margin:0">The field is read from the file name: Land, Water, Sky, Forest, Tropical, Glacier, Cosmic, Tama, New_Tama, plus "Sprite" or "Art". Files with unclear names go to the field of the adult you have selected.</p>
+<input type="file" id="files" accept="image/*" multiple aria-label="Choose chart files">
+<div class="row" style="margin-top:10px"><button class="pill" data-v="art" aria-pressed="true">Art pictures</button><button class="pill" data-v="sprite" aria-pressed="false">Sprite pictures (pixel)</button><button class="pill" id="clearImg">Remove saved pictures</button></div>
+<p class="small" id="loaded" style="margin:8px 0 0"></p>
+</details>
+
+<section class="step">
+<h2><span class="num">1</span>Which device are you using?</h2>
+<div class="row" id="devices"></div>
+<p class="small" style="margin:10px 0 0">Pick a device to only show adults it can raise. Leave "All" to browse everything.</p>
+</section>
+
+<section class="step">
+<h2><span class="num">2</span>Choose the adult you want</h2>
+<input type="search" id="q" placeholder="Type a name, e.g. Mametchi, Gemtchi…" aria-label="Search adults">
+<div id="adults"></div>
+<p class="small" style="margin-top:12px">Dashed borders mark special adults (need a shell connection).</p>
+</section>
+
+<section class="step hidden" id="infoBox">
+<h2><span class="num">3</span>Info & current stage</h2>
+<div class="info">
+ <div>
+  <div class="av hidden" id="av" role="img"></div>
+  <div class="big" id="aName"></div>
+  <div id="aTags" style="margin-top:8px"></div>
+  <p class="small" style="margin:12px 0 4px">Available on:</p>
+  <div id="aDev"></div>
+  <a id="aChart" class="pill" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;margin-top:12px;text-decoration:none;background:var(--accent);color:#fff;border-color:var(--accent)">View original chart online ↗</a>
+ </div>
+ <div>
+  <label for="stage" style="font-weight:800">What stage is your Tama at now?</label>
+  <select id="stage" style="margin-top:6px"></select>
+  <div id="subWrap" style="margin-top:10px"></div>
+ </div>
+</div>
+<div class="path" id="path"></div>
+<div id="chartBox"></div>
+</section>
+
+<section class="step hidden" id="resBox">
+<h2><span class="num">4</span>Result</h2>
+<div id="result"></div>
+</section>
+</main>
+<footer>Data compiled from Neo_Mametchi's growth charts — <a href="https://neomametchi-logs.freeforums.net/thread/408/tamagotchi-paradise">NeoMametchi Logs</a>. Unofficial fan tool.</footer>
+
+<script>
+{
+const DEV=["Pink Land","Blue Water","Purple Sky","Jade Forest","Orange Tropics","White Glacier","Neon Planets"];
+const ROWS=[
+ {k:"Perfect care",t:"At evolution, the Tama Cell has 5 Hunger cells + 5 Happy cells and 0 Mistake cells."},
+ {k:"0–1 mistakes",t:"Have 0–1 Mistake cells (but not the full 5 Hunger + 5 Happy cells)."},
+ {k:"2–5 mistakes",t:"Have 2–5 Mistake cells at evolution."},
+ {k:"6+ mistakes",t:"Have 6 or more Mistake cells at evolution."}];
+const IND="No dominant food type: feed only the default Pellets, or keep equal cell counts of different food types.";
+// [young name, cell type, [foods], [adults row 0..3]]
+const F=[
+{id:"land",n:"Land",c:"#e8457a",kid:"Land Kid",dev:[0,1,2,3],y:[
+ ["Roar Young","Meat",["Small Meat +1 (Volcano)","Big Meat +2 (Volcano)","Steak +4"],["Meowtchi","Pochitchi","Gumax","Ratchi"]],
+ ["Toddle Young","Carrot",["Carrot +1 (Spring)","Apple +2 (Spring)","Shredded Carrot +4","Apple Pie +4"],["Mametchi","Mimitchi","Molmotchi","Sheeptchi"]],
+ ["Lick Young","Worm",["Meal Worms +1 (Volcano & Spring)","Meal Bugs +2 (Volcano & Spring)","Bug Biscuit +4"],["Leopatchi","Sebiretchi","Elizardotchi","Heavytchi"]],
+ ["Sprout Young",null,[],["Violetchi","Potsunentchi","Tustustchi","Shigemi-san"]]],
+ sp:["Chodracotchi","Pink Land",3]},
+{id:"water",n:"Water",c:"#1593d6",kid:"Water Kid",dev:[0,1,2,3],y:[
+ ["Glide Young","Seafood",["Shellfish +1 (Volcano)","Seafood +2 (Volcano)","Fried Fish +4","Grilled Shellfish +4"],["Irukatchi","Kametchi","Kujiratchi","Uruotchi"]],
+ ["Leap Young","Seaweed",["Red Seaweed +1 (Spring)","Green Seaweed +2 (Spring)","Seaweed Salad +4"],["Axolopatchi","Imoritchi","Kawazutchi","Beavertchi"]],
+ ["Paddle Young","Shrimp",["Meal Plankton +1 (Volcano & Spring)","Meal Shrimp +2 (Volcano & Spring)","Plankton Dumpling +4"],["Tachutchi","Sharktchi","Ankotchi","Otototchi"]],
+ ["Float Young",null,[],["Kuraratchi","Mendakotchi","Amefuratchi","Gusokutchi"]]],
+ sp:["Mermarintchi","Blue Water",3]},
+{id:"sky",n:"Sky",c:"#7a4fd0",kid:"Sky Kid",dev:[0,1,2],y:[
+ ["Flap Young","Chicken",["Piece of Chicken +1 (Volcano)","Whole Chicken +2 (Volcano)","Chicken Steak +4"],["Horhotchi","Mongatchi","Eagletchi","Batchi"]],
+ ["Chirp Young","Corn",["Corn +1 (Spring)","Cherry +2 (Spring)","Corn Flakes +4","Cherry Pie +4"],["Peacotchi","Batatchi","Kuchipatchi","Kiwitchi"]],
+ ["Bumble Young","Syrup",["Honey Syrup +1 (Volcano & Spring)","Flower Syrup +2 (Volcano & Spring)","Flower Drops +4"],["Papillotchi","Kabutotchi","Tentotchi","Hatchitchi"]],
+ ["Rocky Young",null,[],["Gemtchi","Oretatchi","Ishikorotchi","Magmatchi"]]],
+ sp:["Yayacorntchi","Purple Sky",3]},
+{id:"forest",n:"Forest",c:"#0f9e86",kid:"Forest Kid",dev:[3,4,5],y:[
+ ["Roar Young","Peking Meat",["Peking Meat +1 (Volcano)","Chashu Pork +2 (Volcano)","Warm Buns +4"],["Forest Horhotchi","Konkotchi","Tigaotchi","Tanoontchi"]],
+ ["Toddle Young","Bamboo Grass",["Sesame Leaves +1 (Spring)","Bamboo Grass +2 (Spring)","Bamboo Leaf Rice Cake +4","Sesame Pancake +4"],["Lessapantchi","Kanokotchi","Suigyutchi","Panbootchi"]],
+ ["Chirp Young","Pomegranate",["Persimmon +1 (Volcano & Spring)","Pomegranate +2 (Volcano & Spring)","Che Thai +4"],["Kachitchi","Tokipatchi","Kuchipatchi","Sparrotchi"]],
+ ["Sprout Young",null,[],["Shiitaketchi","Peatchi","Nappatchi","Rushraditchi"]]],
+ sp:["Tatsutchi","Jade Forest",3]},
+{id:"tropical",n:"Tropical",c:"#f07a1a",kid:"Tropical Kid",dev:[4,5],y:[
+ ["Roar Young","Tropical Meat",["Tropical Patty +1 (Volcano)","Tropical Steak +2 (Volcano)","Hawaiian Burger +4"],["Tropical Meowtchi","Madillotchi","Tarantytchi","Crocotchi"]],
+ ["Toddle Young","Tropical Fruit",["Banana +1 (Spring)","Tropical Fruits +2 (Spring)","Fruit Jelly +4","Banana on a Stick +4"],["Tropical Mametchi","Parorotchi","Tenatchi","Namakemotchi"]],
+ ["Lick Young","Tropical Critter",["Meal Critters +1 (Volcano & Spring)","Butterfly Snacks +2 (Volcano & Spring)","Butterfly Salad +4"],["Kuikuitchi","Poizutchi","Chameleotchi","Iguanatchi"]],
+ ["Sprout Young",null,[],["Yashikitchi","Tropical Potsunentchi","Ananatchi","Avovotchi"]]],
+ sp:["Manapatchi","Orange Tropics",3]},
+{id:"ice",n:"Ice",c:"#4f7fe0",kid:"Frozen Kid",dev:[4,5],y:[
+ ["Roar Young","Frozen Meat",["Canned Meat +1 (Volcano)","Frozen Meat +2 (Volcano)","Beef Stroganoff +4"],["Okojotchi","Wolftchi","Polakumatchi","Azaratchi"]],
+ ["Glide Young","Frozen Seafood",["Salmon Roe +1 (Spring)","Northern Seafood +2 (Spring)","Blinis +4"],["Icy Irukatchi","Ginjirotchi","Rakkotchi","Hoppentchi"]],
+ ["Toddle Young","Frozen Berry",["Red Berries +1 (Volcano & Spring)","Beet +2 (Volcano & Spring)","Borscht +4","Hot Tea with Jam +4"],["Lemmingtchi","Moosetchi","Raichotchi","Yukiusatchi"]],
+ ["Float Young",null,[],["Nerinetchi","Dangouotchi","Yaytytchi","Yukiraratchi"]]],
+ sp:["Hobohorntchi","White Glacier",3]},
+{id:"cosmic",n:"Cosmic (Neon Planet)",c:"#2a2aa8",kid:"Galaxy Kid",dev:[6],y:[
+ ["Piko Young","Sparkle",["Sparkle Berry +1 (Volcano)","Sparkle Fruit +2 (Volcano)","Stargaze Pie +4","Zero-Gravity Juice +4"],["Cosmitchi","Hoshimortchi","Uchutchi","Kumamutchi"]],
+ ["Slithr Young","Squiggle",["Squiggle Sausages +1 (Spring)","Squiggle Ham +2 (Spring)","Invader Sandwich +4"],["Ukiukitchi","Pochipotchi","Takonyatchi","Kumarstchi"]],
+ ["Orbit Young","Whirly",["Mobius Donut +1 (Any)","Whirlwind Baumkuchen +2 (Any)","Moonwalk Donut +4"],["Hanawatchi","Nagarebotchi","Planetchi","Quepealetchi"]],
+ ["Mech Young",null,[],["Mamerobotchi","Uchuhikotchi","Satelatchi","Parabolatchi"]]],
+ sp:["Mimimimitchi","Neon Planets",3]},
+{id:"tamastar",n:"Tama★ (Tama Planet)",c:"#b59a00",kid:"Marutchi",dev:[6],y:[
+ ["Curl Young","Curl",["Strawberry +1 (Volcano)","Matsutake +2 (Volcano)","Strawberry Tart +4"],["Memetchi","Violetchi","Makiko","Gozarutchi"]],
+ ["Sparkl Young","Sparkl",["Tomato +1 (Spring)","Tama Donuts +2 (Spring)","Spaghetti +4"],["Lovelitchi","Melodytchi","Moriritchi","Kuromametchi"]],
+ ["Fluffy Young","Fluffy",["Long Roll +1 (Any)","Rice Ball +2 (Any)","Rice Ball Lunch +4","Sandwich Roll +4"],["Neliatchi","Milktchi","Unimarutchi","Weeptchi"]],
+ ["Tama Young",null,[],["Mametchi","Mimitchi","Kuchipatchi","Pochitchi"]]],
+ sp:null},
+{id:"newtama",n:"New Tama (New Tama Planet)",c:"#18a34a",kid:"Newtama Kid",dev:[6],y:[
+ ["Land Young","Land Food",["Carrot +1 (Volcano)","Big Meat +2 (Volcano)","Shredded Carrot +4"],["Meowtchi","Okojotchi","Molmotchi","Tenatchi"]],
+ ["Water Young","Water Food",["Shellfish +1 (Spring)","Seafood +2 (Spring)","Fried Fish +4","Grilled Shellfish +4"],["Irukatchi","Axolopatchi","Mendakotchi","Kawazutchi"]],
+ ["Sky Young","Sky Food",["Corn +1 (Any)","Whole Chicken +2 (Any)","Corn Flakes +4"],["Horhotchi","Gemtchi","Mongatchi","Batchi"]],
+ ["Forest Young",null,[],["Lessapantchi","Parorotchi","Kanokotchi","Yukiusatchi"]]],
+ sp:null}
+];
+const CH={land:"FRY84id.png",water:"yz6OrTW.png",sky:"3XD3USk.png",forest:"qN8Z32M.png",tropical:"I6cLFi6.png",ice:"fspXlr6.png",cosmic:"OPtRnUN.jpeg",tamastar:"j0zBCsY.jpeg",newtama:"EYqAdnf.jpeg"};
+// character cell positions in a chart (fractions of the image)
+const CX=[.174,.321,.469,.619],CY=[.511,.613,.718,.821],CW=.15,CHh=.108,YOUNGY=.40,SPX=.735,SPY=.9;
+const BASE={};const IMG=Object.assign({},BASE);const DEVIMG=["#ff7eb6","#3d8bff","#a77bff","#3fd0c9","#ff8a3d","#dfe5ff","#1c1f5c"];let variant="art";
+// flat list of adults
+const A=[];
+F.forEach((f,fi)=>{f.y.forEach((y,yi)=>y[3].forEach((n,r)=>A.push({n,fi,yi,r,key:f.id+"-"+yi+"-"+r})));
+ if(f.sp)A.push({n:f.sp[0],fi,sp:true,key:f.id+"-sp"});});
+let dev=-1,sel=null;
+const $=id=>document.getElementById(id);
+const fieldName=f=>f.n+" Field";
+
+function renderDevices(){
+ $("devices").innerHTML=['<button class="devbtn" data-d="-1" aria-pressed="'+(dev<0)+'"><span class="all">All</span>All devices</button>']
+  .concat(DEV.map((d,i)=>'<button class="devbtn" data-d="'+i+'" aria-pressed="'+(dev==i)+'"><span class="egg" style="--e:'+DEVIMG[i]+'"></span>'+d+'</button>')).join("");
+}
+function renderAdults(){
+ const q=$("q").value.trim().toLowerCase();
+ $("adults").innerHTML=F.map((f,fi)=>{
+  if(dev>=0&&!f.dev.includes(dev))return"";
+  const list=A.filter(a=>a.fi==fi&&(!q||a.n.toLowerCase().includes(q)));
+  if(!list.length)return"";
+  return '<div class="field"><h3><span class="dot" style="background:'+f.c+'"></span>'+fieldName(f)+' <span class="small">· '+f.dev.map(d=>DEV[d]).join(", ")+'</span></h3><div class="chips">'+
+   list.map(a=>{const on=sel&&sel.key==a.key?' sel':'';
+    if(getImg(f.id))return '<button class="pic bg-'+f.id+on+(a.sp?' special':'')+'" style="--c:'+f.c+';'+adultCrop(f,a)+'" data-k="'+a.key+'" title="'+a.n+'" aria-label="'+a.n+'"></button>';
+    return '<button class="chip'+(a.sp?' special':'')+on+'" style="--c:'+f.c+'" data-k="'+a.key+'">'+a.n+'</button>'}).join("")+'</div></div>';
+ }).join("")||'<p class="small">No adults found.</p>';
+}
+function stageOptions(){
+ const o=['<option value="baby">Babymarutchi (Baby)</option>','<option value="bb">Bbmarutchi</option>','<option value="kid">Kid</option>','<option value="young">Young</option>','<option value="adult">Already an adult</option>'];
+ $("stage").innerHTML=o.join("");
+}
+function subSelect(){
+ const s=$("stage").value,f=F[sel.fi];
+ const pool=F.filter(x=>dev<0||x.dev.includes(dev));
+ if(s=="kid"){
+  $("subWrap").innerHTML='<label class="small" for="sub">Which Kid?</label><select id="sub">'+pool.map(x=>'<option value="'+F.indexOf(x)+'"'+(x===f?" selected":"")+'>'+x.kid+' — '+fieldName(x)+'</option>').join("")+'</select>';
+ }else if(s=="young"){
+  $("subWrap").innerHTML='<label class="small" for="sub">Which Young?</label><select id="sub">'+pool.map(x=>{const i=F.indexOf(x);return '<optgroup label="'+fieldName(x)+'">'+x.y.map((y,yi)=>'<option value="'+i+'-'+yi+'"'+(x===f&&(sel.sp?yi==0:yi==sel.yi)?" selected":"")+'>'+y[0]+' ('+(y[1]?y[1]+' cells':'Indeterminate')+')</option>').join("")+'</optgroup>'}).join("")+'</select>';
+ }else $("subWrap").innerHTML="";
+ const sub=$("sub");if(sub)sub.onchange=compute;
+}
+function foodHtml(y){return y[1]?'<div class="food">'+y[2].map(m=>'<span>'+m+'</span>').join("")+'</div>':''}
+function youngStep(f,a){
+ if(a.sp){
+  const allowed=f.y.filter((_,i)=>i!=f.sp[2]).map(y=>y[0]+" ("+y[1]+")").join(", ");
+  return '<li><b>Evolve into any Young except '+f.y[f.sp[2]][0]+':</b> it can be '+allowed+'. Feed mostly that Young\'s food so its cell type is the highest at evolution (5 points = 1 cell).</li>';
+ }
+ const y=f.y[a.yi];
+ return '<li><b>Evolve into '+y[0]+':</b> '+(y[1]?'at evolution, <b>'+y[1]+' must be the most common food cell</b> in the Tama Cell (5 points of one food type = 1 cell).'+foodHtml(y):IND)+'</li>';
+}
+function adultStep(f,a){
+ if(a.sp)return '<li><b>Evolve into '+a.n+':</b> during the Young stage, <b>connect a '+f.sp[1]+' shell</b> with <b>two different color shells</b>.</li>';
+ const r=ROWS[a.r];
+ return '<li><b>Evolve into '+a.n+' ('+r.k+'):</b> '+r.t+'<div class="small" style="margin-top:4px">Hunger cell: max the Hunger meter · Happy cell: max the Happiness meter · Mistake cell: each care mistake.</div></li>';
+}
+function kidStep(f){
+ return '<li><b>Evolve into '+f.kid+':</b> keep Babymarutchi in the <b>'+fieldName(f)+'</b>; every 15 minutes there gives 1 field cell. With <b>4 '+f.n+' cells</b> it becomes '+f.kid+'.</li>';
+}
+function alternatives(a){
+ const same=A.filter(x=>x.n==a.n&&x.key!=a.key);
+ if(!same.length)return"";
+ return '<div class="note">💡 '+a.n+' also appears in: '+same.map(x=>'<b>'+fieldName(F[x.fi])+'</b> ('+F[x.fi].dev.map(d=>DEV[d]).join(", ")+')').join("; ")+'. Tap it in step 2 to see that field\'s path.</div>';
+}
+function getImg(fid){return IMG[fid+"|"+variant]||IMG[fid+"|art"]||IMG[fid+"|sprite"]||null}
+function cropStyle(u,cx,cy){
+ const px=(cx-CW/2)/(1-CW)*100,py=(cy-CHh/2)/(1-CHh)*100;
+ return 'background-size:'+(100/CW)+'% '+(100/CHh)+'%;background-position:'+px+'% '+py+'%';
+}
+function updateBgCss(){$("bgcss").textContent=F.map(f=>{const u=getImg(f.id);return u?'.bg-'+f.id+'{background-image:url('+u+')}':''}).join("")}
+function adultCrop(f,a){const u=getImg(f.id);if(!u)return"";return a.sp?cropStyle(u,SPX,SPY):cropStyle(u,CX[a.yi],CY[a.r])}
+function renderPics(){
+ if(!sel)return;const f=F[sel.fi],u=getImg(f.id),av=$("av");
+ if(u){av.setAttribute("style",adultCrop(f,sel));av.setAttribute("aria-label",sel.n);av.className="av bg-"+f.id;
+  $("chartBox").innerHTML='<details style="margin-top:14px"><summary style="cursor:pointer;font-weight:800">Show the full '+fieldName(f)+' chart</summary><img class="chartimg" src="'+u+'" alt="Growth chart '+fieldName(f)+'"></details>';}
+ else{av.className="av hidden";av.removeAttribute("style");$("chartBox").innerHTML='<p class="small" style="margin:12px 0 0">No picture for the '+fieldName(f)+' yet. Open "Character pictures" at the top to add the chart file.</p>';}
+}
+function setPath(f,a,idx){
+ const y=a.sp?"Young (not "+f.y[f.sp[2]][0]+")":f.y[a.yi][0];
+ const n=[["Baby","Babymarutchi"],["Kid",f.kid],["Young",y],["Adult",a.n]];
+ const u=getImg(f.id);
+ const pic=i=>{if(!u)return"";if(i==2&&!a.sp)return'<div class="mini bg-'+f.id+'" style="'+cropStyle(u,CX[a.yi],YOUNGY)+'"></div>';if(i==3)return'<div class="mini bg-'+f.id+'" style="'+adultCrop(f,a)+'"></div>';return""};
+ $("path").innerHTML=n.map((x,i)=>'<div class="node'+(i<idx?' done':'')+(i==idx?' now':'')+'" style="--c:'+f.c+'">'+pic(i)+'<span>'+x[0]+'</span><b>'+x[1]+'</b></div>').join("");
+ $("path").style.marginTop="18px";
+}
+function compute(){
+ if(!sel)return;
+ const a=sel,f=F[a.fi],s=$("stage").value;
+ let ok=true,why="",steps=[],idx=0;
+ const devWarn=dev>=0&&!f.dev.includes(dev);
+ if(s=="baby"){idx=0;steps=[kidStep(f),youngStep(f,a),adultStep(f,a)];
+ }else if(s=="bb"){idx=0;ok=false;why="Bbmarutchi is its own branch (Babymarutchi spent 4 hours without reaching 4 cells of any field). It won't follow any field's Kid → Young → Adult path and can't be bred. Try again with a new Tama and keep it in one field.";
+ }else if(s=="kid"){idx=1;const k=+$("sub").value;
+  if(k==a.fi)steps=[youngStep(f,a),adultStep(f,a)];
+  else{ok=false;why="Your Tama is a "+F[k].kid+" ("+fieldName(F[k])+"), but "+a.n+" only comes from "+f.kid+" ("+fieldName(f)+"). The Kid stage locks in the field, so it can't change now.";}
+ }else if(s=="young"){idx=2;const[k,yi]=$("sub").value.split("-").map(Number);const yy=F[k].y[yi];
+  if(k!=a.fi){ok=false;why="Your Tama is a "+yy[0]+" from the "+fieldName(F[k])+", but "+a.n+" belongs to the "+fieldName(f)+".";}
+  else if(a.sp&&yi==f.sp[2]){ok=false;why=a.n+" cannot evolve from "+yy[0]+".";}
+  else if(!a.sp&&yi!=a.yi){ok=false;why=a.n+" only comes from "+f.y[a.yi][0]+", but your Tama is a "+yy[0]+". "+yy[0]+" can become: "+yy[3].join(", ")+(f.sp&&yi!=f.sp[2]?", "+f.sp[0]+" (shell connection)":"")+".";}
+  else steps=[adultStep(f,a)];
+ }else{idx=3;ok=false;why="Adult is the final stage, so it can't change into another character. To get "+a.n+", raise a new Tama (or the next generation) from Babymarutchi.";}
+ setPath(f,a,ok?idx:-1);
+ let h='<div class="verdict '+(ok?'ok':'no')+'">'+(ok?'✓ You can still get '+a.n+'!':'✗ You can\'t get '+a.n+' from this stage')+'</div>';
+ if(ok)h+='<p style="margin:0">What to do next:</p><ol class="todo">'+steps.join("")+'</ol>';
+ else h+='<p style="margin:4px 0 0">'+why+'</p>';
+ if(devWarn)h+='<div class="note">⚠️ '+DEV[dev]+' doesn\'t have the '+fieldName(f)+'. '+a.n+' needs: '+f.dev.map(d=>DEV[d]).join(", ")+'.</div>';
+ if(!ok)h+=alternatives(a);
+ $("result").innerHTML=h;
+}
+function pick(k){
+ sel=A.find(a=>a.key==k);const f=F[sel.fi];
+ renderAdults();
+ $("infoBox").classList.remove("hidden");$("resBox").classList.remove("hidden");
+ $("aName").textContent=sel.n;
+ $("aTags").innerHTML='<span class="tag" style="--c:'+f.c+'">'+fieldName(f)+'</span>'+(sel.sp?'<span class="tag" style="--c:#ff4f8b">Special adult · '+f.sp[1]+' shell</span>':'<span class="tag" style="--c:#555">'+f.y[sel.yi][0]+'</span><span class="tag" style="--c:#555">'+ROWS[sel.r].k+'</span>');
+ $("aDev").innerHTML=f.dev.map(d=>'<span class="dev"><span class="egg sm" style="--e:'+DEVIMG[d]+'"></span>'+DEV[d]+'</span>').join("");
+ $("aChart").href="https://i.imgur.com/"+CH[f.id];
+ subSelect();compute();renderPics();
+ $("infoBox").scrollIntoView({behavior:"smooth",block:"start"});
+}
+$("devices").onclick=e=>{const b=e.target.closest("[data-d]");if(!b)return;dev=+b.dataset.d;try{localStorage.setItem("pdev",dev)}catch(_){};renderDevices();renderAdults();if(sel){subSelect();compute();}};
+$("adults").onclick=e=>{const b=e.target.closest("[data-k]");if(b)pick(b.dataset.k)};
+$("q").oninput=renderAdults;
+$("stage").onchange=()=>{subSelect();compute();};
+// ---- chart pictures: stored only in this browser (IndexedDB) ----
+function guess(name){
+ const n=name.toLowerCase(),v=n.includes("sprite")?"sprite":"art";let id=null;
+ if(/new[\s_-]?tama/.test(n))id="newtama";else if(/cosmic/.test(n))id="cosmic";else if(/glacier|ice/.test(n))id="ice";
+ else if(/tropic/.test(n))id="tropical";else if(/forest|jade/.test(n))id="forest";else if(/water/.test(n))id="water";
+ else if(/sky/.test(n))id="sky";else if(/land/.test(n))id="land";else if(/tama/.test(n))id="tamastar";
+ return{id,v};
+}
+let dbp=null;
+function db(){if(!dbp)dbp=new Promise((res,rej)=>{try{const r=indexedDB.open("paradise-charts",1);r.onupgradeneeded=()=>r.result.createObjectStore("img");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}});return dbp}
+async function dbPut(k,b){try{const d=await db();d.transaction("img","readwrite").objectStore("img").put(b,k)}catch(_){}}
+async function dbLoad(){try{const d=await db();const st=d.transaction("img").objectStore("img");
+ await new Promise(res=>{const c=st.openCursor();c.onsuccess=()=>{const cur=c.result;if(!cur)return res();IMG[cur.key]=URL.createObjectURL(cur.value);cur.continue()};c.onerror=res});}catch(_){}}
+function showLoaded(){
+ const have=F.filter(f=>getImg(f.id)).map(f=>f.n);
+ $("loaded").textContent=have.length?"Pictures loaded: "+have.join(", ")+".":"No pictures yet.";
+}
+function refreshPics(){updateBgCss();renderAdults();showLoaded();if(sel){renderPics();compute();}}
+$("files").onchange=e=>{
+ const miss=[];
+ for(const file of e.target.files){
+  let{id,v}=guess(file.name);
+  if(!id){if(sel)id=F[sel.fi].id;else{miss.push(file.name);continue}}
+  const k=id+"|"+v;if(IMG[k])URL.revokeObjectURL(IMG[k]);
+  IMG[k]=URL.createObjectURL(file);dbPut(k,file);
+ }
+ refreshPics();
+ if(miss.length)$("loaded").textContent+=" Couldn't tell the field for: "+miss.join(", ")+" — select an adult first, then choose that file again.";
+ e.target.value="";
+};
+document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{variant=b.dataset.v;document.querySelectorAll("[data-v]").forEach(x=>x.setAttribute("aria-pressed",x===b));refreshPics()});
+$("clearImg").onclick=async()=>{for(const k in IMG){if(IMG[k]!==BASE[k])URL.revokeObjectURL(IMG[k]);delete IMG[k]}Object.assign(IMG,BASE);try{const d=await db();d.transaction("img","readwrite").objectStore("img").clear()}catch(_){}refreshPics()};
+dbLoad().then(()=>{if(Object.keys(IMG).length===0)$("upBox").open=true;refreshPics()});
+try{const d=localStorage.getItem("pdev");if(d!==null)dev=+d}catch(_){}
+stageOptions();renderDevices();updateBgCss();renderAdults();
+}
+</script>
+</body>
+</html>
